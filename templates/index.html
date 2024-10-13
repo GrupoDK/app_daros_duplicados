@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Duplicados en Excel</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800 text-center">Buscador de Duplicados en Excel</h1>
+        <form id="upload-form" class="mb-6">
+            <label for="file-upload" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                    <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Haz clic para subir</span> o arrastra y suelta</p>
+                    <p class="text-xs text-gray-500">Excel (.xlsx, .xls)</p>
+                </div>
+                <input id="file-upload" type="file" class="hidden" accept=".xlsx, .xls" />
+            </label>
+        </form>
+        <div id="result" class="mt-6 hidden">
+            <h2 class="text-xl font-semibold mb-3 text-gray-700">Valores Duplicados:</h2>
+            <ul id="duplicates-list" class="list-disc pl-5 space-y-1"></ul>
+        </div>
+        <div id="message" class="mt-4 p-4 rounded-md hidden"></div>
+    </div>
+
+    <script>
+        document.getElementById('file-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const resultDiv = document.getElementById('result');
+                    const messageDiv = document.getElementById('message');
+                    const duplicatesList = document.getElementById('duplicates-list');
+
+                    if (data.duplicates) {
+                        resultDiv.classList.remove('hidden');
+                        messageDiv.classList.add('hidden');
+                        duplicatesList.innerHTML = '';
+                        data.duplicates.forEach(value => {
+                            const li = document.createElement('li');
+                            li.textContent = value;
+                            li.className = 'text-gray-600';
+                            duplicatesList.appendChild(li);
+                        });
+                    } else if (data.message) {
+                        resultDiv.classList.add('hidden');
+                        messageDiv.classList.remove('hidden');
+                        messageDiv.textContent = data.message;
+                        messageDiv.className = 'mt-4 p-4 bg-green-100 text-green-700 rounded-md';
+                    } else if (data.error) {
+                        resultDiv.classList.add('hidden');
+                        messageDiv.classList.remove('hidden');
+                        messageDiv.textContent = data.error;
+                        messageDiv.className = 'mt-4 p-4 bg-red-100 text-red-700 rounded-md';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    const messageDiv = document.getElementById('message');
+                    messageDiv.classList.remove('hidden');
+                    messageDiv.textContent = 'Ocurrió un error al procesar el archivo.';
+                    messageDiv.className = 'mt-4 p-4 bg-red-100 text-red-700 rounded-md';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

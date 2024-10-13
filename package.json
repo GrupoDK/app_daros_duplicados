@@ -1,0 +1,9 @@
+{
+  "name": "flask-excel-duplicate-finder",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "python main.py"
+  }
+}
